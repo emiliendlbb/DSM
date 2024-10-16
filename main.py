@@ -10,6 +10,9 @@ freq_path = os.path.join(current_dir, 'files', 'P2024_frf_acc.txt')
 acc_path = os.path.join(current_dir, 'files', 'P2024_irf_acc.txt')
 
 data_freq = np.loadtxt(freq_path)
+freq = data_freq[:, 0]
+Re_FRF = data_freq[:, 1]
+Im_FRF = data_freq[:, 2]
 data_acc = np.loadtxt(acc_path)
 time = data_acc[:, 0]
 acc = data_acc[:, 1]
