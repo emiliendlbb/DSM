@@ -72,8 +72,8 @@ def log_method(displacement):
 
 
 
-freq = damped_natural_frequency(data_acc)
-print(freq)
+natural_freq = damped_natural_frequency(data_acc)
+print(natural_freq)
 
 displacement, velocity = integrate_acc(data_acc)
 # print(displacement)
@@ -82,4 +82,55 @@ estimated_damping_ratio = log_method(displacement)
 print(estimated_damping_ratio)
 
 plt.plot(time, displacement)
+plt.show()
+
+
+# Construire la fonction de transfert complexe
+fonction_transfert = Re_FRF + 1j * Im_FRF
+
+# Calculer l'amplitude (module) et la phase (argument)
+amplitude = np.abs(fonction_transfert)
+phase = np.angle(fonction_transfert)
+
+# Tracer l'amplitude et la phase
+plt.figure()
+
+# Amplitude
+plt.subplot(2, 1, 1)
+plt.plot(freq, amplitude)
+plt.title("Amplitude de la fonction de transfert")
+plt.xlabel("Fréquence (Hz)")
+plt.ylabel("Amplitude")
+
+# Phase
+plt.subplot(2, 1, 2)
+plt.plot(freq, phase)
+plt.title("Phase de la fonction de transfert")
+plt.xlabel("Fréquence (Hz)")
+plt.ylabel("Phase (radians)")
+
+plt.tight_layout()
+plt.show()
+
+
+#nyquist
+
+# Tracer le diagramme de Nyquist
+plt.figure()
+
+plt.plot(Re_FRF, Im_FRF, label='Nyquist Plot')
+plt.plot(Re_FRF, -Im_FRF, linestyle='--', label='Conjugate symmetry')
+
+# Ajout des axes pour plus de clarté
+plt.axhline(0, color='black',linewidth=0.5)
+plt.axvline(0, color='black',linewidth=0.5)
+
+# Titres et légendes
+plt.title("Diagramme de Nyquist")
+plt.xlabel("Partie réelle")
+plt.ylabel("Partie imaginaire")
+plt.legend()
+
+plt.grid(True)
+plt.axis('equal')  # Pour avoir des échelles identiques sur les deux axes
 plt.show()
