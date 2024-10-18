@@ -17,6 +17,9 @@ data_acc = np.loadtxt(acc_path)
 time = data_acc[:, 0]
 acc = data_acc[:, 1]
 
+plt.plot(time, data_acc)
+plt.show()
+
 
 def damped_natural_frequency(data_acc):
     time = data_acc[:, 0]
@@ -54,13 +57,13 @@ def log_method(displacement):
     peaks, _ = find_peaks(displacement)
 
     displacement_peaks = displacement[peaks]
-    print(displacement_peaks)
+    # print(displacement_peaks)
 
     displacement_peaks = displacement_peaks[1:6]
-    print(displacement_peaks)
+    # print(displacement_peaks)
 
     log_quotient = np.log(np.abs(displacement_peaks[:-1] / displacement_peaks[1:]))
-    print(log_quotient)
+    # print(log_quotient)
 
     mean_log = np.mean(log_quotient)
 
@@ -74,6 +77,9 @@ def log_method(displacement):
 
 natural_freq = damped_natural_frequency(data_acc)
 print(natural_freq)
+
+natural_omega = 2*np.pi*natural_freq
+print(natural_omega)
 
 displacement, velocity = integrate_acc(data_acc)
 # print(displacement)
@@ -118,8 +124,8 @@ plt.show()
 # Tracer le diagramme de Nyquist
 plt.figure()
 
-plt.plot(Re_FRF, Im_FRF, label='Nyquist Plot')
-plt.plot(Re_FRF, -Im_FRF, linestyle='--', label='Conjugate symmetry')
+plt.plot(Re_FRF/(natural_omega)**2, Im_FRF/(natural_omega)**2, label='Nyquist Plot')
+# plt.plot(Re_FRF, -Im_FRF, linestyle='--', label='Conjugate symmetry')
 
 # Ajout des axes pour plus de clarté
 plt.axhline(0, color='black',linewidth=0.5)
