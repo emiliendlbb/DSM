@@ -119,13 +119,13 @@ plt.tight_layout()
 plt.show()
 
 # natural frequency at the resonance peak
-peak_idx = np.argmax(amplitude)
-natural_frequency_bode = freq[peak_idx]
+peak_bode = np.argmax(amplitude)
+natural_frequency_bode = freq[peak_bode]
 
 print(f"Estimated natural frequency from Bode plot: {natural_frequency_bode} Hz")
 
 #half-power method
-half_power_amplitude = amplitude[peak_idx] / np.sqrt(2)
+half_power_amplitude = amplitude[peak_bode] / np.sqrt(2)
 half_power_indices = np.where(amplitude >= half_power_amplitude)[0]
 bandwidth_freqs = freq[half_power_indices]
 
@@ -136,15 +136,23 @@ Q_factor = natural_frequency_bode / delta_f
 print(f"Estimated Quality Factor (Q): {Q_factor}")
 
 damping_ratio_half_power = 1 / (2 * Q_factor)
-print(f"Estimated Damping Ratio using Half-Power Method: {damping_ratio_half_power}")
+print(f"Estimated damping ratio using half-power method: {damping_ratio_half_power}")
 
+
+
+natural_frequency_nyquist = freq[102]
+print(f"Estimated natural frequency from Nyquist plot: {natural_frequency_bode} Hz")
+
+nyquist_amplitude_natural_frequency = np.sqrt(Im_FRF[102]**2 + Re_FRF[102]**2)
+equivalent_mass = 87.5
+damping_ratio_nyquist = 1/(2*equivalent_mass*nyquist_amplitude_natural_frequency)
+print(f"Estimated damping ratio using Nyquist plot: {damping_ratio_nyquist}")
 
 #nyquist
-
 # Tracer le diagramme de Nyquist
 plt.figure()
 
-plt.plot(Re_FRF/(natural_omega_peaks)**2, Im_FRF/(natural_omega_peaks)**2, label='Nyquist Plot')
+plt.plot(Re_FRF, Im_FRF, label='Nyquist Plot')
 # plt.plot(Re_FRF, -Im_FRF, linestyle='--', label='Conjugate symmetry')
 
 # Ajout des axes pour plus de clarté
