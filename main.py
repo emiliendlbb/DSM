@@ -11,8 +11,12 @@ acc_path = os.path.join(current_dir, 'files', 'P2024_irf_acc.txt')
 
 data_freq = np.loadtxt(freq_path)
 freq = data_freq[:, 0]
-Re_FRF = data_freq[:, 1]
-Im_FRF = data_freq[:, 2]
+omega_squared = (2 * np.pi * freq) ** 2
+Re_FRF = data_freq[:, 1] / omega_squared
+Im_FRF = data_freq[:, 2] / omega_squared
+#Vu qu'on divise par 0 pour le premier élément, on a un nan à l'indice 0, on doit donc le remettre à 0
+Re_FRF[0] = 0.0 
+Im_FRF[0] = 0.0
 data_acc = np.loadtxt(acc_path)
 time = data_acc[:, 0]
 acc = data_acc[:, 1]
@@ -85,32 +89,51 @@ displacement, velocity = integrate_acc(data_acc)
 # print(displacement)
 
 damping_ratio_log_method = log_method(displacement)
-print(f"Estimated natural frequency from Bode plot: {damping_ratio_log_method} Hz")
+print(f"Estimated damping ratio from log method: {damping_ratio_log_method}")
 
 plt.plot(time, displacement)
 plt.show()
 
 
 # Construire la fonction de transfert complexe
-fonction_transfert = Re_FRF + 1j * Im_FRF
+fonction_transfert = (Re_FRF + 1j * Im_FRF)
 
 # Calculer l'amplitude (module) et la phase (argument)
 amplitude = np.abs(fonction_transfert)
 phase = np.angle(fonction_transfert)
+print(phase)
+
+pi_over_2_phase_index = np.argmin(np.abs(np.abs(phase)-np.pi/2))
+print(np.abs(np.abs(phase)-np.pi/2))
+print(pi_over_2_phase_index)
+natural_frequency_bode = freq[pi_over_2_phase_index]
+
+peak_bode = np.argmax(amplitude)
+max_amplitude_frequency_bode = freq[peak_bode]
+
+print(f"Estimated natural frequency from Bode plot: {natural_frequency_bode} Hz")
+print(f"Maximum amplitude frequency from Bode plot: {max_amplitude_frequency_bode} Hz")
 
 # Tracer l'amplitude et la phase
 plt.figure()
 
 # Amplitude
 plt.subplot(2, 1, 1)
-plt.plot(freq, amplitude)
+plt.plot(freq, amplitude, label="Amplitude")
+plt.axvline(x=max_amplitude_frequency_bode, color='r', linestyle='--', label=f"Max Amplitude @ {max_amplitude_frequency_bode:.2f} Hz")
+plt.axvline(x=natural_frequency_bode, color='g', linestyle='--', label=f"Phase = pi/2 @ {natural_frequency_bode:.2f} Hz")
 plt.title("Amplitude de la fonction de transfert")
 plt.xlabel("Fréquence (Hz)")
 plt.ylabel("Amplitude")
 
 # Phase
 plt.subplot(2, 1, 2)
-plt.plot(freq, phase)
+plt.plot(freq, phase, label="Phase")
+plt.axvline(x=natural_frequency_bode, color='g', linestyle='--', label=f"Phase = pi/2 @ {natural_frequency_bode:.2f} Hz")
+plt.xlim(left=freq[0] - 4)
+xmin, xmax = plt.gca().get_xlim()
+plt.plot([xmin, natural_frequency_bode], [np.pi/2, np.pi/2], 'g--', label=f"Phase = pi/2")
+plt.yticks([0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi], [r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$', r'$\frac{3\pi}{4}$', r'$\pi$'])
 plt.title("Phase de la fonction de transfert")
 plt.xlabel("Fréquence (Hz)")
 plt.ylabel("Phase (radians)")
@@ -118,16 +141,6 @@ plt.ylabel("Phase (radians)")
 plt.tight_layout()
 plt.show()
 
-pi_over_2_phase_index = np.argmin(np.abs(np.abs(phase)-np.pi/2))
-print(pi_over_2_phase_index)
-natural_frequency_bode = freq[pi_over_2_phase_index]
-print(natural_frequency_bode)
-
-peak_bode = np.argmax(amplitude)
-max_amplitude_frequency_bode = freq[peak_bode]
-
-print(f"Estimated natural frequency from Bode plot: {natural_frequency_bode} Hz")
-print(f"Maximum amplitude frequency from Bode plot: {max_amplitude_frequency_bode} Hz")
 
 #half-power method
 half_power_amplitude = amplitude[peak_bode] / np.sqrt(2)
