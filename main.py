@@ -79,7 +79,7 @@ natural_freq_peaks = damped_natural_frequency(data_acc)
 print(f"Estimated natural frequency from peaks: {natural_freq_peaks} Hz")
 
 natural_omega_peaks = 2*np.pi*natural_freq_peaks
-print(f"Estimated natural pulsation from peaks: {natural_omega_peaks} Hz")
+print(f"Estimated natural pulsation from peaks: {natural_omega_peaks} rad/s")
 
 displacement, velocity = integrate_acc(data_acc)
 # print(displacement)
@@ -118,11 +118,16 @@ plt.ylabel("Phase (radians)")
 plt.tight_layout()
 plt.show()
 
-# natural frequency at the resonance peak
+pi_over_2_phase_index = np.argmin(np.abs(np.abs(phase)-np.pi/2))
+print(pi_over_2_phase_index)
+natural_frequency_bode = freq[pi_over_2_phase_index]
+print(natural_frequency_bode)
+
 peak_bode = np.argmax(amplitude)
-natural_frequency_bode = freq[peak_bode]
+max_amplitude_frequency_bode = freq[peak_bode]
 
 print(f"Estimated natural frequency from Bode plot: {natural_frequency_bode} Hz")
+print(f"Maximum amplitude frequency from Bode plot: {max_amplitude_frequency_bode} Hz")
 
 #half-power method
 half_power_amplitude = amplitude[peak_bode] / np.sqrt(2)
@@ -141,7 +146,7 @@ print(f"Estimated damping ratio using half-power method: {damping_ratio_half_pow
 
 
 natural_frequency_nyquist = freq[102]
-print(f"Estimated natural frequency from Nyquist plot: {natural_frequency_bode} Hz")
+print(f"Estimated natural frequency from Nyquist plot: {natural_frequency_nyquist} Hz")
 
 nyquist_amplitude_natural_frequency = np.sqrt(Im_FRF[102]**2 + Re_FRF[102]**2)
 equivalent_mass = 87.5
