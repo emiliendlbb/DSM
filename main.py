@@ -17,7 +17,7 @@ Im_FRF = data_freq[:, 2] / omega_squared
 #Vu qu'on divise par 0 pour le premier élément, on a un nan à l'indice 0,
 #Mise à 0 pour les graphiques
 Re_FRF[0] = Re_FRF[1]
-Im_FRF[0] = Re_FRF[1]
+Im_FRF[0] = Im_FRF[1]
 data_acc = np.loadtxt(acc_path)
 time = data_acc[:, 0]
 acc = data_acc[:, 1]
@@ -80,10 +80,10 @@ print(f"Estimated natural frequency from peaks: {natural_freq_peaks} Hz")
 natural_omega_peaks = 2*np.pi*natural_freq_peaks
 print(f"Estimated natural pulsation from peaks: {natural_omega_peaks} rad/s")
 
-# displacement, velocity = integrate_acc(data_acc)
-# # print(displacement)
+displacement, velocity = integrate_acc(data_acc)
+# print(displacement)
 
-damping_ratio_log_method = log_method(acc)
+damping_ratio_log_method = log_method(displacement)
 print(f"Estimated damping ratio from log method: {damping_ratio_log_method}")
 
 plt.plot(time, acc)
