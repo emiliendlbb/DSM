@@ -14,16 +14,13 @@ freq = data_freq[:, 0]
 omega_squared = (2 * np.pi * freq) ** 2
 Re_FRF = data_freq[:, 1] / omega_squared
 Im_FRF = data_freq[:, 2] / omega_squared
-#Vu qu'on divise par 0 pour le premier élément, on a un nan à l'indice 0, on doit donc le remettre à 0
-Re_FRF[0] = 0.0 
-Im_FRF[0] = 0.0
+#Vu qu'on divise par 0 pour le premier élément, on a un nan à l'indice 0,
+#Mise à 0 pour les graphiques
+Re_FRF[0] = Re_FRF[1]
+Im_FRF[0] = Re_FRF[1]
 data_acc = np.loadtxt(acc_path)
 time = data_acc[:, 0]
 acc = data_acc[:, 1]
-
-plt.plot(time, data_acc)
-plt.show()
-
 
 def damped_natural_frequency(data_acc):
     time = data_acc[:, 0]
@@ -32,13 +29,10 @@ def damped_natural_frequency(data_acc):
     peaks, _ = find_peaks(acc)
 
     time_peaks = time[peaks]
-    # print(time_peaks)
 
     time_peaks_difference = np.diff(time_peaks)
-    # print(time_peaks_difference)
 
     time_peaks_difference = time_peaks_difference[7:]
-    # print(time_peaks_difference)
 
     avg_time_peaks_difference = np.mean(time_peaks_difference)
 
@@ -78,6 +72,7 @@ def log_method(displacement):
     
 
 
+#methode avec l'accélération
 
 natural_freq_peaks = damped_natural_frequency(data_acc)
 print(f"Estimated natural frequency from peaks: {natural_freq_peaks} Hz")
@@ -85,27 +80,28 @@ print(f"Estimated natural frequency from peaks: {natural_freq_peaks} Hz")
 natural_omega_peaks = 2*np.pi*natural_freq_peaks
 print(f"Estimated natural pulsation from peaks: {natural_omega_peaks} rad/s")
 
-displacement, velocity = integrate_acc(data_acc)
-# print(displacement)
+# displacement, velocity = integrate_acc(data_acc)
+# # print(displacement)
 
-damping_ratio_log_method = log_method(displacement)
+damping_ratio_log_method = log_method(acc)
 print(f"Estimated damping ratio from log method: {damping_ratio_log_method}")
 
-plt.plot(time, displacement)
+plt.plot(time, acc)
 plt.show()
 
 
-# Construire la fonction de transfert complexe
+
+
+
+#méthode avec diagramme de Bode
+
 fonction_transfert = (Re_FRF + 1j * Im_FRF)
 
 # Calculer l'amplitude (module) et la phase (argument)
 amplitude = np.abs(fonction_transfert)
 phase = np.angle(fonction_transfert)
-print(phase)
 
 pi_over_2_phase_index = np.argmin(np.abs(np.abs(phase)-np.pi/2))
-print(np.abs(np.abs(phase)-np.pi/2))
-print(pi_over_2_phase_index)
 natural_frequency_bode = freq[pi_over_2_phase_index]
 
 peak_bode = np.argmax(amplitude)
@@ -114,7 +110,6 @@ max_amplitude_frequency_bode = freq[peak_bode]
 print(f"Estimated natural frequency from Bode plot: {natural_frequency_bode} Hz")
 print(f"Maximum amplitude frequency from Bode plot: {max_amplitude_frequency_bode} Hz")
 
-# Tracer l'amplitude et la phase
 plt.figure()
 
 # Amplitude
@@ -143,6 +138,7 @@ plt.show()
 
 
 #half-power method
+
 half_power_amplitude = amplitude[peak_bode] / np.sqrt(2)
 half_power_indices = np.where(amplitude >= half_power_amplitude)[0]
 bandwidth_freqs = freq[half_power_indices]
