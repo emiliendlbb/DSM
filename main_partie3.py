@@ -105,14 +105,14 @@ def plot_Bode_Nyquist(FRF_matrix, frequencies_range, first_point_index, second_p
     plt.tight_layout()
     plt.show()
 
-def max_amplitude(FRF_matrix, frequencies_range, F_0, wavelenght, speed, time_interval, sampling_rate=10000):
+def max_amplitude_different_point(FRF_matrix, frequencies_range, F_0, wavelenght, speed, time_interval, sampling_rate=10000):
     Omega = speed / wavelenght * 2* np.pi
 
     time = np.linspace(0, time_interval, (int)(sampling_rate*time_interval))
     F_z = F_0*np.sin(Omega*time)
 
     # Fourier
-    F_w = np.array  ([np.sum(F_z * np.exp(-1j * 2 * np.pi * f * time)) for f in frequencies_range])
+    F_w = np.array([np.sum(F_z * np.exp(-1j * 2 * np.pi * f * time)) for f in frequencies_range])
 
     max_amplitudes = np.zeros(FRF_matrix.shape[0])
 
@@ -122,7 +122,23 @@ def max_amplitude(FRF_matrix, frequencies_range, F_0, wavelenght, speed, time_in
 
     return max_amplitudes
 
-def plot_max_amplitude(max_amplitudes):
+def max_amplitude_specific_point(FRF_matrix, frequencies_range, F_0, wavelenght, speed, time_interval, point_index, sampling_rate=10000):
+    Omega = speed / wavelenght * 2* np.pi
+
+    time = np.linspace(0, time_interval, (int)(sampling_rate*time_interval))
+    F_z = F_0*np.sin(Omega*time)
+
+    # Fourier
+    F_w = np.array([np.sum(F_z * np.exp(-1j * 2 * np.pi * f * time)) for f in frequencies_range])
+
+    
+    X_w = FRF_matrix[point_index, 0, :] * F_w
+
+    max_amplitude = np.max(np.abs(X_w))
+
+    return max_amplitude
+
+def plot_max_amplitude_different_point(max_amplitudes):
     plt.figure()
     plt.plot(range(len(max_amplitudes)), max_amplitudes, 'o', color='red')
     plt.xlabel("Accéléromètre indice")
@@ -130,6 +146,33 @@ def plot_max_amplitude(max_amplitudes):
     plt.title("Réponse maximum en fréquentiel")
     plt.grid(True)
     plt.show()
+
+def max_amplitude_different_speed(natural_freq, damping_ratios, modes, freq_frf, 
+                                  F_0, wavelenght, time_interval,
+                                  point_index=11, 
+                                  min_speed=(50/3.6), max_speed=(70/3.6),
+                                  sampling_rate=100):
+    
+    new_damping_ratios = np.full_like(damping_ratios, 0.02)
+    new_FRF_matrix = compute_FRF_matrix(natural_freq, new_damping_ratios, modes, freq_frf)
+
+
+    max_amplitudes = np.zeros(sampling_rate)
+    for i in range(sampling_rate):
+        speed = min_speed + i*(max_speed - min_speed)/sampling_rate
+        max_amplitudes[i] = max_amplitude_specific_point(new_FRF_matrix, freq_frf, F_0, wavelenght, speed, time_interval, point_index)
+    return max_amplitudes
+
+def plot_max_amplitude_different_speed(max_amplitudes, sampling_rate=100):
+    plt.figure()
+    speeds = np.linspace(50/3.6, 70/3.6, sampling_rate)
+    plt.plot(speeds, max_amplitudes, 'o', color='red')
+    plt.xlabel("Vitesse [m/s]")
+    plt.ylabel("Amplitude")
+    plt.title("Réponse maximum en fréquentiel")
+    plt.grid(True)
+    plt.show()
+
 
 if __name__ == '__main__':
     natural_freq, damping_ratios, freq_frf, Re_frf, Im_frf, modes, mode1, mode2, mode3, mode4 = load_data()
@@ -150,8 +193,13 @@ if __name__ == '__main__':
 
     # plot_Bode_Nyquist(FRF_matrix, freq_frf, 0, 11, freq_frf, Re_frf, Im_frf)
 
-    max_amplitudes = max_amplitude(FRF_matrix, freq_frf, F_0, wavelenght, speed, time_interval)
+    max_amplitudes_points = max_amplitude_different_point(FRF_matrix, freq_frf, F_0, wavelenght, speed, time_interval)
 
-    plot_max_amplitude(max_amplitudes)
+    plot_max_amplitude_different_point(max_amplitudes_points)
+
+    max_amplitudes_speed = max_amplitude_different_speed(natural_freq, damping_ratios, modes, freq_frf,
+                                                         F_0, wavelenght, time_interval)
+    
+    plot_max_amplitude_different_speed(max_amplitudes_speed)
 
         
