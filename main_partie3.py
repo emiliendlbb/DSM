@@ -111,16 +111,16 @@ def max_amplitude_different_point(FRF_matrix, frequencies_range, F_0, wavelenght
     time = np.linspace(0, time_interval, (int)(sampling_rate*time_interval))
     F_z = F_0*np.sin(Omega*time)
 
-    # Fourier
-    F_w = np.array([np.sum(F_z * np.exp(-1j * 2 * np.pi * f * time)) for f in frequencies_range])
+    # # Fourier
+    # F_w = np.array([np.sum(F_z * np.exp(-1j * 2 * np.pi * f * time)) for f in frequencies_range])
 
     max_amplitudes = np.zeros(FRF_matrix.shape[0])
 
     for i in range(FRF_matrix.shape[0]):
-        X_w = FRF_matrix[i, 0, :] * F_w
+        X_w = FRF_matrix[i, 0, :] # * F_w
         max_amplitudes[i] = np.max(np.abs(X_w))
 
-    return max_amplitudes
+    return 450*max_amplitudes
 
 def max_amplitude_specific_point(FRF_matrix, frequencies_range, F_0, wavelenght, speed, time_interval, point_index, sampling_rate=10000):
     Omega = speed / wavelenght * 2* np.pi
@@ -130,7 +130,6 @@ def max_amplitude_specific_point(FRF_matrix, frequencies_range, F_0, wavelenght,
 
     # Fourier
     F_w = np.array([np.sum(F_z * np.exp(-1j * 2 * np.pi * f * time)) for f in frequencies_range])
-
     
     X_w = FRF_matrix[point_index, 0, :] * F_w
 
@@ -186,12 +185,12 @@ if __name__ == '__main__':
     point_distance = np.insert(point_distance, 5, 400)
 
     time_interval = 0.15    # s
-    # plot_excitation_force(F_0, wavelenght, speed, time_interval)
+    plot_excitation_force(F_0, wavelenght, speed, time_interval)
 
     # crée une matrice 14*14*nb_freq
     FRF_matrix = compute_FRF_matrix(natural_freq, damping_ratios, modes, freq_frf)
 
-    # plot_Bode_Nyquist(FRF_matrix, freq_frf, 0, 11, freq_frf, Re_frf, Im_frf)
+    plot_Bode_Nyquist(FRF_matrix, freq_frf, 0, 11, freq_frf, Re_frf, Im_frf)
 
     max_amplitudes_points = max_amplitude_different_point(FRF_matrix, freq_frf, F_0, wavelenght, speed, time_interval)
 
