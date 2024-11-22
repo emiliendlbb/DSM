@@ -30,8 +30,8 @@ def load_data():
 
     return natural_freq, damping_ratios, freq_frf, Re_frf, Im_frf, modes_data, mode1, mode2, mode3, mode4
 
-def plot_excitation_force(F_0, wavelenght, speed, time_interval, sampling_rate=10000):
-    Omega = speed / wavelenght * 2* np.pi
+def plot_excitation_force(F_0, wavelength, speed, time_interval, sampling_rate=10000):
+    Omega = speed / wavelength * 2* np.pi
 
     plt.figure()
 
@@ -64,7 +64,7 @@ def compute_FRF_matrix(natural_omegas, damping_ratios, modes, omegas_range):
             omega_r = natural_omegas[mode]
             mode_vector = modes[:, mode]
             numerator = np.outer(mode_vector, mode_vector)
-            denominator = raideurs[mode] - masses[mode]*omega**2 + 2 * 1j * masses[mode] * damping_ratios[mode] * omega_r * omega
+            denominator = raideurs[mode] - omega**2 + 2 * 1j * masses[mode] * damping_ratios[mode] * omega_r * omega
             frf += -omega**2 * numerator/denominator
         FRF_matrix[:, :, i] = frf
 
@@ -104,8 +104,8 @@ def plot_Bode_Nyquist(FRF_matrix, omega_range, first_point_index, second_point_i
     plt.tight_layout()
     plt.show()
 
-def max_amplitude_different_point(FRF_matrix, omega_range, F_0, wavelenght, speed, time_interval, sampling_rate=10000):
-    Omega = speed / wavelenght * 2 * np.pi
+def max_amplitude_different_point(FRF_matrix, omega_range, F_0, wavelength, speed, time_interval, sampling_rate=10000):
+    Omega = speed / wavelength * 2 * np.pi
 
     time = np.linspace(0, time_interval, (int)(sampling_rate*time_interval))
     F_z = F_0*np.sin(Omega*time)
@@ -126,10 +126,10 @@ def max_amplitude_different_point(FRF_matrix, omega_range, F_0, wavelenght, spee
         X_w = FRF_matrix[i, 0, np.argmin(np.abs(omega_range - Omega))] * F_0
         max_amplitudes[i] = X_w
 
-    return max_amplitudes
+    return np.abs(max_amplitudes)
 
-def max_amplitude_specific_point(FRF_matrix, omega_range, F_0, wavelenght, speed, time_interval, point_index, sampling_rate=10000):
-    Omega = speed / wavelenght * 2* np.pi
+def max_amplitude_specific_point(FRF_matrix, omega_range, F_0, wavelength, speed, time_interval, point_index, sampling_rate=10000):
+    Omega = speed / wavelength * 2* np.pi
 
     time = np.linspace(0, time_interval, (int)(sampling_rate*time_interval))
     F_z = F_0*np.sin(Omega*time)
@@ -153,6 +153,30 @@ def plot_max_amplitude_different_point(max_amplitudes):
     plt.ylabel(r"$\max |X_{i,0}(\omega)|$")
     plt.title("Réponse maximum en fréquentiel")
     plt.grid(True)
+    plt.show()
+
+def plot_time_response_specific_point(FRF_matrix, omega_range, F_0, wavelength, speed, time_interval, point_index, sampling_rate=10000):
+    Omega = speed / wavelength * 2* np.pi
+    time = np.linspace(0, 0.15, (int)(sampling_rate*time_interval))
+    
+    FRF_driver_seat = FRF_matrix[point_index, 0, np.argmin(np.abs(omega_range - Omega))]
+    F_z = F_0*np.sin(Omega*time)
+
+    acceleration_time_response = np.real(FRF_driver_seat * F_z)
+
+    max_acceleration = np.max(acceleration_time_response)
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(time, acceleration_time_response, color='teal', label='Réponse en accélération')
+    plt.axhline(y=max_acceleration, color='orange', linestyle='--', label='Valeur maximale = {:.2f} m/s²'.format(max_acceleration))
+    plt.xlabel("Temps (s)")
+    plt.ylabel("Accélération [m/$s^2$]")
+    plt.title("Réponse en accélération au siège du conducteur au cours du temps")
+    plt.grid(True)
+
+
+
+    plt.legend(loc='lower right')
     plt.show()
 
 def max_amplitude_different_speed(natural_omega, damping_ratios, modes, omega_frf, 
@@ -189,25 +213,47 @@ if __name__ == '__main__':
     modes = modes/1000      # m
 
     speed = 50/3.6          # m/s
-    wavelenght = 0.2        # m
+    wavelength = 0.2        # m
     F_0 = 450               # N
 
-    point_distance = np.linspace(0, 1200, 13)
-    point_distance = np.insert(point_distance, 5, 400)
+    point_distance = np.array([0, 100, 200, 300, 400, 400, 500, 600, 700, 800, 901, 1000, 1101, 1200])
 
     time_interval = 0.15    # s
-    plot_excitation_force(F_0, wavelenght, speed, time_interval)
+    plot_excitation_force(F_0, wavelength, speed, time_interval)
 
     # crée une matrice 14*14*nb_freq
     FRF_matrix = compute_FRF_matrix(natural_omega, damping_ratios, modes, omega_frf)
+    
+    """
+    FRF_matrix2 = np.zeros((14, 14, len(omega_frf)), dtype=complex)
+    for j in range(14):
+        for k, omega_exc in enumerate(omega_frf):
+            FRF_matrix[0, j, k] = sum(
+                -(modes[0, n] * modes[j, n] * omega_exc**2) /
+                (natural_omega[n]**2 - omega_exc**2 + 1j * 2 * damping_ratios[n] * natural_omega[n] * omega_exc)
+                for n in range(len(natural_omega))
+            )
+
+    if np.allclose(FRF_matrix, FRF_matrix2, atol=1e-8):
+        print("Les matrices sont identiques (avec une tolérance).")
+    else:
+        print("Les matrices ne sont pas identiques (même avec une tolérance).")
+        diff = np.abs(FRF_matrix - FRF_matrix2)
+        
+        # Trouver la plus grande différence
+        max_diff = np.max(diff)
+        print("La plus grande différence est :", max_diff)
+        """
 
     plot_Bode_Nyquist(FRF_matrix, omega_frf, 11, 0, omega_frf, Re_frf, Im_frf)
 
-    max_amplitudes_points = max_amplitude_different_point(FRF_matrix, omega_frf, F_0, wavelenght, speed, time_interval)
+    max_amplitudes_points = max_amplitude_different_point(FRF_matrix, omega_frf, F_0, wavelength, speed, time_interval)
 
     plot_max_amplitude_different_point(max_amplitudes_points)
 
+    plot_time_response_specific_point(FRF_matrix, omega_frf, F_0, wavelength, speed, time_interval, 11)
+
     max_amplitudes_speed = max_amplitude_different_speed(natural_omega, damping_ratios, modes, omega_frf,
-                                                         F_0, wavelenght, time_interval)
+                                                         F_0, wavelength, time_interval)
     
     plot_max_amplitude_different_speed(max_amplitudes_speed)
