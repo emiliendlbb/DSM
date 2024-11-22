@@ -125,6 +125,7 @@ def max_amplitude_different_point(FRF_matrix, omega_range, F_0, wavelength, spee
     for i in range(FRF_matrix.shape[0]):
         X_w = FRF_matrix[i, 0, np.argmin(np.abs(omega_range - Omega))] * F_0
         max_amplitudes[i] = X_w
+        max_amplitudes[i] = np.abs(X_w)
 
     return np.abs(max_amplitudes)
 
@@ -143,6 +144,7 @@ def max_amplitude_specific_point(FRF_matrix, omega_range, F_0, wavelength, speed
 
     X_w = FRF_matrix[point_index, 0, np.argmin(np.abs(omega_range - Omega))] * F_0
     max_amplitude = X_w
+    max_amplitude = np.abs(X_w)
 
     return max_amplitude
 
@@ -162,7 +164,8 @@ def plot_time_response_specific_point(FRF_matrix, omega_range, F_0, wavelength, 
     FRF_driver_seat = FRF_matrix[point_index, 0, np.argmin(np.abs(omega_range - Omega))]
     F_z = F_0*np.sin(Omega*time)
 
-    acceleration_time_response = np.real(FRF_driver_seat * F_z)
+    "acceleration_time_response = np.real(FRF_driver_seat * F_z)"
+    acceleration_time_response = np.imag(FRF_driver_seat*F_0*np.exp(1j*Omega*time))
 
     max_acceleration = np.max(acceleration_time_response)
 
