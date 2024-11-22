@@ -113,7 +113,7 @@ def max_amplitude_different_point(FRF_matrix, omega_range, F_0, wavelength, spee
     # # Fourier
     # F_w = np.array([np.sum(F_z * np.exp(-1j * 2 * np.pi * f * time)) for f in frequencies_range])
 
-    max_amplitudes = np.zeros(FRF_matrix.shape[0])
+    max_amplitudes = np.zeros(FRF_matrix.shape[0], dtype=complex)
 
     # for i in range(FRF_matrix.shape[0]):
     #     X_w = FRF_matrix[i, 0, :] # * F_w
@@ -183,19 +183,18 @@ def max_amplitude_different_speed(natural_omega, damping_ratios, modes, omega_fr
                                   F_0, wavelenght, time_interval,
                                   point_index=11, 
                                   min_speed=(50/3.6), max_speed=(70/3.6),
-                                  sampling_rate=100):
+                                  sampling_rate=1000):
     
     new_damping_ratios = np.full_like(damping_ratios, 0.02)
     new_FRF_matrix = compute_FRF_matrix(natural_omega, new_damping_ratios, modes, omega_frf)
 
-
-    max_amplitudes = np.zeros(sampling_rate)
+    max_amplitudes = np.zeros(sampling_rate, dtype=complex)
     for i in range(sampling_rate):
         speed = min_speed + i*(max_speed - min_speed)/sampling_rate
         max_amplitudes[i] = max_amplitude_specific_point(new_FRF_matrix, omega_frf, F_0, wavelenght, speed, time_interval, point_index)
     return np.abs(max_amplitudes)
 
-def plot_max_amplitude_different_speed(max_amplitudes, sampling_rate=100):
+def plot_max_amplitude_different_speed(max_amplitudes, sampling_rate=1000):
     plt.figure()
     speeds = np.linspace(50/3.6, 70/3.6, sampling_rate)
     plt.plot(speeds, max_amplitudes, 'o', color='red')
