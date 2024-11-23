@@ -39,7 +39,6 @@ def plot_excitation_force(F_0, wavelength, speed, time_interval, sampling_rate=1
     F_z = F_0*np.sin(Omega*time)
     plt.plot(time, F_z)
 
-    plt.title("Force excitatrice")
     plt.xlabel("Temps [s]")
     plt.ylabel("Force [N]")
 
@@ -71,32 +70,42 @@ def compute_FRF_matrix(natural_omegas, damping_ratios, modes, omegas_range):
     return FRF_matrix
 
 def plot_Bode_Nyquist(FRF_matrix, omega_range, first_point_index, second_point_index, omega_frf, Re_frf, Im_frf):
-    plt.figure()
+
 
     amplitude_FRF = np.abs(FRF_matrix[first_point_index, second_point_index, :])
     fonction_de_transfert = Re_frf + 1j * Im_frf
     amplitude_data = np.abs(fonction_de_transfert)
 
+    freq_range = omega_range/(2*np.pi)
+
+    maxima_indices, _ = find_peaks(20 * np.log10(amplitude_FRF))
+    minima_indices, _ = find_peaks(-20 * np.log10(amplitude_FRF)) 
+
+    borne_min = np.argmin(np.abs(freq_range - 3.0))
+    borne_max = np.argmax(np.abs(freq_range - 4.0))
+
+    recherche = amplitude_FRF[borne_min:borne_max]
+    print(recherche)
     # Bode
-    plt.subplot(2, 1, 1)
-    plt.semilogx(omega_range, 20 * np.log10(amplitude_FRF), label='FRF_matrix')
-    plt.semilogx(omega_frf, 20 * np.log10(amplitude_data), label='Data', linestyle='--')
-    plt.title('Bode Amplitude')
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Amplitude (dB)')
+    plt.figure()
+    plt.plot(freq_range, 20 * np.log10(amplitude_FRF), label='Amplitude FRF via matrice')
+    plt.plot(freq_frf, 20 * np.log10(amplitude_data), label='Amplitude FRF via frf_f_ds', linestyle='--')
+    plt.plot(freq_range[maxima_indices], 20 * np.log10(amplitude_FRF[maxima_indices]), 'ro', label='maximas')
+    plt.plot(freq_range[minima_indices], 20 * np.log10(amplitude_FRF[minima_indices]), 'go', label='minimas')
+    plt.xlabel('Fréquence [Hz]')
+    plt.ylabel('Amplitude [dB]')
     plt.legend()
     plt.grid()
-
+    plt.show
     # Nyquist
-    plt.subplot(2, 1, 2)
+    plt.figure()
     nyquist_real_FRF = np.real(FRF_matrix[first_point_index, second_point_index, :])
     nyquist_imag_FRF = np.imag(FRF_matrix[first_point_index, second_point_index, :])
-    plt.plot(nyquist_real_FRF, nyquist_imag_FRF, label='FRF_matrix')
-    plt.plot(Re_frf, Im_frf, label='Data', linestyle='--')
+    plt.plot(nyquist_real_FRF, nyquist_imag_FRF, label='Nyquist via matrice')
+    plt.plot(Re_frf, Im_frf, label='Nyquist via frf_f_ds', linestyle='--')
 
-    plt.title('Nyquist')
-    plt.xlabel('Real Part')
-    plt.ylabel('Imaginary Part')
+    plt.xlabel('Partie réelle [m/(s^2*N)]')
+    plt.ylabel('Partie imaginaire [m/(s^2*N)]')
     plt.axhline(0, color='grey', lw=0.5, ls='--')
     plt.axvline(0, color='grey', lw=0.5, ls='--')
     plt.grid()
