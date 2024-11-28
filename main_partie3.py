@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from scipy.integrate import cumulative_trapezoid
 import sympy as sp
+from scipy.interpolate import interp1d
 
 def load_data():
     current_dir = os.path.dirname(__file__)
@@ -70,13 +71,16 @@ def compute_FRF_matrix(natural_omegas, damping_ratios, modes, omegas_range):
     return FRF_matrix
 
 def plot_Bode_Nyquist(FRF_matrix, omega_range, first_point_index, second_point_index, omega_frf, Re_frf, Im_frf):
-
-
     amplitude_FRF = np.abs(FRF_matrix[first_point_index, second_point_index, :])
     fonction_de_transfert = Re_frf + 1j * Im_frf
     amplitude_data = np.abs(fonction_de_transfert)
 
     freq_range = omega_range/(2*np.pi)
+    freq_range = freq_range[150:]
+    amplitude_FRF = amplitude_FRF[150:]
+    freq_frf = omega_frf/(2*np.pi)
+    freq_frf = freq_frf[150:]
+    amplitude_data = amplitude_data[150:]
 
     maxima_indices, _ = find_peaks(20 * np.log10(amplitude_FRF))
     minima_indices, _ = find_peaks(-20 * np.log10(amplitude_FRF)) 
@@ -85,7 +89,7 @@ def plot_Bode_Nyquist(FRF_matrix, omega_range, first_point_index, second_point_i
     borne_max = np.argmax(np.abs(freq_range - 4.0))
 
     recherche = amplitude_FRF[borne_min:borne_max]
-    print(recherche)
+    print("Recherche : ", recherche)
     # Bode
     plt.figure()
     plt.plot(freq_range, 20 * np.log10(amplitude_FRF), label='Amplitude FRF via matrice')
@@ -150,8 +154,9 @@ def max_amplitude_specific_point(FRF_matrix, omega_range, F_0, wavelength, speed
     # X_w = FRF_matrix[point_index, 0, :] * F_w
 
     # max_amplitude = np.max(np.abs(X_w))
+    FRF_interp = interp1d(omega_range, FRF_matrix[point_index, 0, :], kind='cubic', fill_value="extrapolate")
 
-    X_w = FRF_matrix[point_index, 0, np.argmin(np.abs(omega_range - Omega))] * F_0
+    X_w = FRF_interp(Omega) * F_0
     max_amplitude = X_w
     max_amplitude = np.abs(X_w)
 
@@ -208,11 +213,11 @@ def max_amplitude_different_speed(natural_omega, damping_ratios, modes, omega_fr
 
 def plot_max_amplitude_different_speed(max_amplitudes, sampling_rate=1000):
     plt.figure()
-    speeds = np.linspace(50/3.6, 70/3.6, sampling_rate)
-    plt.plot(speeds, max_amplitudes, 'o', color='red')
+    speeds = np.linspace(50, 70, sampling_rate)
+
+    plt.plot(speeds, max_amplitudes, '-', color='red', label='Interpolated curve')  # Ligne continue
     plt.xlabel("Vitesse [m/s]")
-    plt.ylabel("Amplitude")
-    plt.title("Réponse maximum en fréquentiel")
+    plt.ylabel("Amplitude de l'accélération [m/s²]")
     plt.grid(True)
     plt.show()
 
