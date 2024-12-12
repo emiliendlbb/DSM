@@ -103,18 +103,18 @@ def Mass(N):
     return M
 
 def frequency_convergence(nth_frequency):
-    Nritz = 13 #  = Nombre de fonctions jusqu'auquel on teste la convergence"
-    OM = np.zeros(Nritz-2)
-    N_range = np.zeros(Nritz-2)
+    Nritz = 13 #  = Nombre de fonctions jusqu'auquel on teste la convergence
+    OM = np.zeros(Nritz-nth_frequency+1)
+    N_range = np.zeros(Nritz-nth_frequency+1)
     
-    for N in range(3,Nritz+1): # Au moins 3 pour avoir 4 fréquences propres
+    for N in range(nth_frequency,Nritz+1): # Au moins nth_frequency pour avoir la freq correspondante
         K = Stiff(N)
         M = Mass(N)
         omegas_squared,eigen_vects = eig(K,M)
         omegas = np.sort(np.abs(np.sqrt(omegas_squared)))/2/np.pi
-        OM[N-3] = omegas[nth_frequency-1]
-        print(N,'omega :', OM[N-3])
-        N_range[N-3]=N
+        OM[N-nth_frequency] = omegas[nth_frequency-1]
+        print(N,'omega :', OM[N-nth_frequency])
+        N_range[N-nth_frequency]=N
         
     plt.plot(N_range,OM, 'b')
     plt.plot(N_range, OM, 'bo')
@@ -123,7 +123,16 @@ def frequency_convergence(nth_frequency):
     plt.ylabel("Fréquence naturelle approximée [Hz]")
     plt.grid('True')
     plt.show()
+    
+    
+    relative_errors=np.zeros(len)
+    for i in range(0,len(OM)):
+        
 
+def relative_errors(freq_approx, freq_num):
+    relative_error = (freq_approx-freq_num)/freq_num
+    
+    return relative_error
 
 def plot_mode(mode):
     plt.plot(range(len(mode)), mode)
