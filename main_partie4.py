@@ -140,6 +140,8 @@ def frequency_convergence(nth_frequency, freq_num):
     plt.grid('True')
     plt.show()
 
+    return OM[-1]
+
 
 def modeshape(num_mode, Nritz, eigen_vects, points_distances, npoints):
     Ritz_mode = np.zeros(npoints)
@@ -185,15 +187,37 @@ def MAC(modes_1, modes_2):
 
     return mac_matrix
 
+def plot_MAC_matrix(MAC_matrix, ritz_freq, analytical_freq):
+    fig, ax = plt.subplots(figsize=(8, 6))
+    cax = ax.matshow(MAC_matrix, cmap="viridis")
+    plt.colorbar(cax, label="MAC Value")
+
+    for i in range(MAC_matrix.shape[0]):
+        for j in range(MAC_matrix.shape[1]):
+            value = MAC_matrix[i, j]
+            ax.text(j, i, f"{value:.2f}", va='center', ha='center', color='black' if value > 0.5 else 'white')
+
+    ax.set_xticks(range(len(ritz_freq)))
+    ax.set_yticks(range(len(analytical_freq)))
+    ax.set_xticklabels([f"{freq:.2f}" for freq in ritz_freq], rotation=45)
+    ax.set_yticklabels([f"{freq:.2f}" for freq in analytical_freq])
+    ax.set_xlabel("Ritz Frequencies")
+    ax.set_ylabel("Analytical Frequencies")
+    plt.title("MAC Matrix with Frequencies")
+    plt.tight_layout()
+    plt.show()
+
 if __name__ == "__main__":
     freqs_pitch_modes, modes, mode1, mode2, mode3, mode4 = load_data()
     exact_modes = np.column_stack((mode1, mode2, mode3, mode4))
     points_distances = np.array([0, 100, 200, 300, 400, 400, 500, 600, 700, 800, 901, 1000, 1101, 1200])
     points_distances = points_distances/1000
-    # eigen_vects_1 = frequency_convergence(1, freqs_pitch_modes)
-    # eigen_vects_2 = frequency_convergence(2, freqs_pitch_modes)
-    # eigen_vects_3 = frequency_convergence(3, freqs_pitch_modes)
-    # eigen_vects_4 = frequency_convergence(4, freqs_pitch_modes)
+    omega_1 = frequency_convergence(1, freqs_pitch_modes)
+    omega_2 = frequency_convergence(2, freqs_pitch_modes)
+    omega_3 = frequency_convergence(3, freqs_pitch_modes)
+    omega_4 = frequency_convergence(4, freqs_pitch_modes)
+
+    omegas = np.array([omega_1, omega_2, omega_3, omega_4])
 
     W_ritz1 = plot_mode(1, mode1, points_distances)
     W_ritz2 = plot_mode(2, mode2, points_distances)
@@ -204,12 +228,4 @@ if __name__ == "__main__":
 
     MAC_matrix = MAC(exact_modes, Ritz_modes)
 
-    print("MAC Matrix:")
-    print(MAC_matrix)
-
-    plt.imshow(MAC_matrix, cmap="viridis", interpolation="nearest")
-    plt.colorbar(label="MAC Value")
-    plt.title("MAC Matrix")
-    plt.xlabel("Mode Shapes (Set 2)")
-    plt.ylabel("Mode Shapes (Set 1)")
-    plt.show()
+    plot_MAC_matrix(MAC_matrix, omegas, freqs_pitch_modes)
