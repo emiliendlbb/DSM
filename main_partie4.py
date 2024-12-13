@@ -114,9 +114,7 @@ def frequency_convergence(nth_frequency, freq_num):
         K = Stiff(N)
         M = Mass(N)
         omegas_squared, eigen_vects = eig(K,M)
-        ind = np.argsort(np.abs(np.sqrt(omegas_squared)))
         omegas = np.sort(np.abs(np.sqrt(omegas_squared)))/2/np.pi
-        eigen_vects = eigen_vects[:, ind]
         OM[N-nth_frequency] = omegas[nth_frequency-1]
         print(N,'omega :', OM[N-nth_frequency])
         N_range[N-nth_frequency]=N
@@ -147,10 +145,9 @@ def modeshape(num_mode, Nritz, eigen_vects, points_distances, npoints):
     Ritz_mode = np.zeros(npoints)
     for i in range(0, Nritz):
         for j in range(0,npoints):
-            # print("eigen_vects[i, num_mode - 1] : ", eigen_vects[i, num_mode - 1])
-            # print("phi(points_distances[j],l,i) : ", phi(points_distances[j],l,i))
             Ritz_mode[j] = Ritz_mode[j] + eigen_vects[i, num_mode - 1]*phi(points_distances[j],l,i)
 
+    Ritz_mode = Ritz_mode/Ritz_mode[0]
     print(Ritz_mode)
     return Ritz_mode
 
@@ -167,8 +164,8 @@ def plot_mode(num_mode, mode, points_distances):
     
     plt.plot(range(len(W_ritz)), W_ritz, 'b')
     plt.plot(range(len(W_ritz)), W_ritz, 'bo')
-    plt.plot(range(len(mode)), mode, 'r')
-    plt.plot(range(len(mode)), mode, 'ro')
+    plt.plot(range(len(mode)), mode/mode[0], 'r')
+    plt.plot(range(len(mode)), mode/mode[0], 'ro')
     plt.show()
 
     return W_ritz
@@ -210,7 +207,6 @@ if __name__ == "__main__":
     print("MAC Matrix:")
     print(MAC_matrix)
 
-    # Optional: Visualize the MAC matrix
     plt.imshow(MAC_matrix, cmap="viridis", interpolation="nearest")
     plt.colorbar(label="MAC Value")
     plt.title("MAC Matrix")
