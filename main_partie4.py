@@ -116,28 +116,56 @@ def frequency_convergence(nth_frequency, freq_num):
         omegas_squared, eigen_vects = eig(K,M)
         omegas = np.sort(np.abs(np.sqrt(omegas_squared)))/2/np.pi
         OM[N-nth_frequency] = omegas[nth_frequency-1]
-        print(N,'omega :', OM[N-nth_frequency])
+        #print(N,'omega :', OM[N-nth_frequency])
         N_range[N-nth_frequency]=N
     
 
-        
-    plt.plot(N_range, OM, 'b')
+    fig, ax = plt.subplots(figsize=(8, 6))
+    plt.plot(N_range, OM, 'b', label='Fréquence propre - Rayleigh-Ritz')
     plt.plot(N_range, OM, 'bo')
-    plt.title(f"Convergence de la fréquence propre {nth_frequency}")
+    ax.axhline(y=freq_num[nth_frequency-1], color='red', linestyle='-', linewidth=2, label="Fréquence propre - données numériques")
     plt.xlabel("Nombre de fonctions d'approximation")
-    plt.ylabel("Fréquence naturelle approximée [Hz]")
+    plt.ylabel(f"Fréquence naturelle {nth_frequency} approximée [Hz]")
     plt.grid('True')
+    plt.gca().ticklabel_format(style='plain', axis='y', useOffset=False)
+    plt.tight_layout()
+    plt.legend(bbox_to_anchor=(0.95,0.3))
+    
+    # Ajout d'une petite fenêtre pour le zoom (axes imbriqués)
+    zoom_ax = fig.add_axes([0.5, 0.43, 0.45, 0.45])  # [x, y, largeur, hauteur] en fractions de la figure
+    zoom_ax.plot(N_range, OM, 'b')
+    zoom_ax.plot(N_range, OM, 'bo')
+    zoom_ax.axhline(y=freq_num[nth_frequency-1], color='red', linestyle='-', linewidth=2)
+    zoom_ax.set_xlim(8, 14)  # Intervalle en X pour le zoom
+    zoom_ax.set_ylim(450, 600)  # Intervalle en Y pour le zoom
+    zoom_ax.set_title("Agrandissement", fontsize=10)
+    zoom_ax.grid(True)
+
     plt.show()
     
     
     relative_errors = 100*(OM - freq_num[nth_frequency-1])/freq_num[nth_frequency-1]
 
+    print(nth_frequency)
+    print(relative_errors)
+    
+    
+    fig, ax = plt.subplots(figsize=(8, 6))
     plt.plot(N_range, relative_errors, 'b')
     plt.plot(N_range, relative_errors, 'bo')
-    plt.title(f"Erreur de la fréquence propre {nth_frequency}")
     plt.xlabel("Nombre de fonctions d'approximation")
-    plt.ylabel("Erreur relative [%]")
+    plt.ylabel(f"Erreur relative sur la fréquence {nth_frequency} [%]")
     plt.grid('True')
+    
+    # Ajout d'une petite fenêtre pour le zoom (axes imbriqués)
+    zoom_ax = fig.add_axes([0.35, 0.35, 0.45, 0.45])  # [x, y, largeur, hauteur] en fractions de la figure
+    zoom_ax.plot(N_range, relative_errors, 'b')
+    zoom_ax.plot(N_range, relative_errors, 'bo')
+    zoom_ax.set_xlim(5.5, 14)  # Intervalle en X pour le zoom
+    zoom_ax.set_ylim(25, 95)  # Intervalle en Y pour le zoom
+    zoom_ax.set_title("Agrandissement", fontsize=10)
+    zoom_ax.grid(True)
+    
     plt.show()
 
     return OM[-1]
